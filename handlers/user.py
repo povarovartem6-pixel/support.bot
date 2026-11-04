@@ -10,8 +10,8 @@ from config import CATEGORIES, STATUS_LABELS, ADMIN_IDS, is_admin
 from database import create_ticket, save_admin_message
 from keyboards import category_kb, admin_reply_kb, cancel_kb
 
+# ВАЖНО: именно router, а не dp!
 router = Router()
-
 
 class UserFlow(StatesGroup):
     writing_message = State()
@@ -54,7 +54,13 @@ async def choose_category(cb: CallbackQuery, state: FSMContext):
         return
     await state.update_data(category=code)
     await state.set_state(UserFlow.writing_message)
-    await cb.message.edit_reply_markup(reply_markup=None)
+    
+    # Убираем кнопки из предыдущего сообщения
+    try:
+        await cb.message.edit_reply_markup(reply_markup=None)
+    except Exception:
+        pass
+        
     await cb.message.answer(
         f"Категория: {name}\n\n"
         "Напишите текст или отправьте файл/фото/голосовое:",
